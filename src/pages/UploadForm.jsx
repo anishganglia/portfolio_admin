@@ -1,170 +1,104 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Card,
-  Button,
-  Form,
-  Toast,
-  Row,
-  Col,
-} from "react-bootstrap";
-import { FaTrash, FaDownload, FaPlus } from "react-icons/fa";
+import { Form, Button, Alert, Container, Row, Col } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const UploadForm = () => {
-  const [file, setFile] = useState(null);
+  const [images, setImages] = useState([]);
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [link, setLink] = useState("");
-  const [type, setType] = useState("Type 1");
-  const [showToast, setShowToast] = useState(false);
+  const [section, setSection] = useState("A");
+  const [description, setDescription] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
 
-  const handleFileChange = (event) => {
-    const uploadedFile = event.target.files[0];
-    if (uploadedFile && uploadedFile.size <= 10 * 1024 * 1024) {
-      setFile(uploadedFile);
-    } else {
-      alert("File size exceeds the 10MB limit.");
-    }
+  const handleImageUpload = (event) => {
+    const files = Array.from(event.target.files);
+    const imageUrls = files.map(file => URL.createObjectURL(file));
+    setImages([...images, ...imageUrls]);
   };
 
-  const removeFile = () => {
-    setFile(null);
+  const handleRemoveImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
-  const clearInputs = () => {
+  const handleClear = () => {
     setTitle("");
-    setDescription("");
     setLink("");
-    setType("Type 1");
+    setSection("A");
+    setDescription("");
+    setImages([]);
   };
 
-  const handleSubmit = () => {
-    setShowToast(true);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+  };
+
+  const handleView = () => {
+    navigate("/view");
   };
 
   return (
-    <Container
-      fluid
-      className="d-flex align-items-center justify-content-center min-vw-100"
-    >
-      <Row className="w-100">
-        <Col xs={12} md={8} lg={6} className="mx-auto">
-          <Card className="p-4 shadow-lg">
-            <div
-              className="border border-dashed p-4 text-center rounded bg-light"
-              style={{ cursor: "pointer" }}
-            >
-              <Form.Group>
-                <Form.Label className="d-block">
-                  <FaPlus size={28} className="text-secondary" />
-                  <div className="mt-2 text-secondary">
-                    Drag & drop or click to upload
-                  </div>
-                  <div className="text-muted small">Max file size: 10 MB</div>
-                </Form.Label>
-                <Form.Control
-                  type="file"
-                  className="d-none"
-                  onChange={handleFileChange}
-                />
-              </Form.Group>
-            </div>
-
-            {file && (
-              <div className="d-flex align-items-center justify-content-between border p-3 mt-3 rounded bg-white">
-                <div>
-                  <span className="fw-bold">{file.name}</span>
-                  <span className="text-muted small">
-                    {" "}
-                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                </div>
-                <div>
-                  <Button variant="link" className="text-primary me-2">
-                    <FaDownload />
-                  </Button>
-                  <Button
-                    variant="link"
-                    className="text-danger"
-                    onClick={removeFile}
-                  >
-                    <FaTrash />
-                  </Button>
-                </div>
+    <Container className="mt-4 p-4 border rounded text-dark mx-auto d-flex flex-column align-items-center" style={{ maxWidth: "800px", minWidth: "600px", backgroundColor: "#f8f9fa" }}>
+      {showAlert && <Alert variant="success" className="text-center">Submission Successful!</Alert>}
+      
+      <Row className="justify-content-center w-100">
+        <Col xs={12} md={10} className="d-flex flex-column align-items-center">
+          {/* Upload Section */}
+          <div className="mb-3 border p-4 text-center bg-light text-dark rounded" style={{ maxWidth: "700px", minWidth: "500px", borderStyle: "dashed" }}>
+            <input type="file" onChange={handleImageUpload} accept="image/*" hidden id="upload" multiple />
+            <label htmlFor="upload" className="d-block" style={{ cursor: "pointer" }}>
+              <img src="https://cdn-icons-png.flaticon.com/512/126/126477.png" alt="upload-icon" width="40" height="40" />
+              <p className="mb-1">Choose files or drag & drop them here</p>
+              <small className="text-muted">JPEG, PNG, PDG, and MP4 formats, up to 50MB</small>
+            </label>
+          </div>
+          
+          {/* Display Section */}
+          <div className="d-flex flex-wrap justify-content-center">
+            {images.map((image, index) => (
+              <div key={index} className="m-2 border p-2 position-relative bg-light text-dark rounded" style={{ maxWidth: "150px", minWidth: "100px" }}>
+                <img src={image} alt={`Uploaded ${index}`} className="img-fluid" />
+                <button className="btn btn-danger btn-sm position-absolute top-0 end-0" onClick={() => handleRemoveImage(index)}>X</button>
               </div>
-            )}
+            ))}
+          </div>
+          
+          {/* Form Section */}
+          <Form className="border p-3 rounded bg-light text-dark d-flex flex-column align-items-center" onSubmit={handleSubmit} style={{ maxWidth: "700px", minWidth: "500px" }}>
+            <Form.Group className="mb-3 w-100">
+              <Form.Label><b>Title</b></Form.Label>
+              <Form.Control type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </Form.Group>
+            
+            <Form.Group className="mb-3 w-100">
+              <Form.Label><b>Link</b></Form.Label>
+              <Form.Control type="text" value={link} onChange={(e) => setLink(e.target.value)} />
+            </Form.Group>
 
-            {file && (
-              <Button
-                variant="outline-danger"
-                className="mt-3 w-100"
-                onClick={removeFile}
-              >
-                Remove File
-              </Button>
-            )}
-
-            <Form className="mt-4">
-              <Form.Group className="mb-3">
-                <Form.Label>Title</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Description</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Link</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Section</Form.Label>
-                <Form.Select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  <option>Home </option>
-                  <option>Talks , Workshop & Conferences </option>
+            <Form.Group className="mb-3 w-100">
+              <Form.Label><b>Section</b></Form.Label>
+              <Form.Select value={section} onChange={(e) => setSection(e.target.value)}>
+                  <option value="Home">Home</option>
+                  <option>Talks, Workshop & Conferences</option>
                   <option>Management Shots</option>
                   <option>Awards and Recognitions</option>
-                  <option>Interviews </option>
-                </Form.Select>
-              </Form.Group>
-            </Form>
+                  <option>Interviews</option>
+              </Form.Select>
+            </Form.Group>
 
-            <div className="d-flex justify-content-between mt-3">
-              <Button variant="secondary" onClick={clearInputs}>
-                Clear
-              </Button>
-              <Button variant="success" onClick={handleSubmit}>
-                Submit
-              </Button>
-              <Button variant="info">View</Button>
+            <Form.Group className="mb-3 w-100">
+              <Form.Label><b>Description</b></Form.Label>
+              <Form.Control as="textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+            </Form.Group>
+
+            {/* Buttons */}
+            <div className="d-flex gap-2 justify-content-center">
+              <Button variant="secondary" onClick={handleClear}>Clear</Button>
+              <Button variant="success" type="submit">Submit</Button>
+              <Button variant="info" onClick={handleView}>View</Button>
             </div>
-          </Card>
-
-          <Toast
-            onClose={() => setShowToast(false)}
-            show={showToast}
-            delay={3000}
-            autohide
-            className="mt-3"
-          >
-            <Toast.Body>Submitted Successfully!</Toast.Body>
-          </Toast>
+          </Form>
         </Col>
       </Row>
     </Container>
