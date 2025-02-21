@@ -49,7 +49,7 @@ const UploadForm = () => {
             <input type="file" onChange={handleImageUpload} accept="image/*" hidden id="upload" multiple />
             <label htmlFor="upload" className="d-block" style={{ cursor: "pointer" }}>
               <img src="https://cdn-icons-png.flaticon.com/512/126/126477.png" alt="upload-icon" width="40" height="40" />
-              <p className="mb-1">Choose files or drag & drop them here</p>
+              <p className="mb-1">Choose files or drag & drop them here [ max 2 images ]</p>
               <small className="text-muted">JPEG, PNG, PDG, and MP4 formats, up to 50MB</small>
             </label>
           </div>

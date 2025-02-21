@@ -1,155 +1,140 @@
 import React, { useState } from "react";
-import { Container, Card, Button, Row, Col, Form, Modal, Carousel } from "react-bootstrap";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { Card, Button, Container, Modal, Form } from "react-bootstrap";
+import { FaEdit, FaTrash, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-const initialSections = [
-  {
-    id: 1,
-    title: "Section 1",
-    cards: [
-      {
-        id: 1,
-        image: "https://via.placeholder.com/300",
-        title: "Sample Title 1",
-        description: "This is a sample description for the first card.",
-        link: "https://example.com",
-      },
-      {
-        id: 2,
-        image: "https://via.placeholder.com/300",
-        title: "Sample Title 2",
-        description: "This is a sample description for the second card.",
-        link: "https://example.com",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Section 2",
-    cards: [
-      {
-        id: 3,
-        image: "https://via.placeholder.com/300",
-        title: "Sample Title 3",
-        description: "This is a sample description for the third card.",
-        link: "https://example.com",
-      },
-      {
-        id: 4,
-        image: "https://via.placeholder.com/300",
-        title: "Sample Title 4",
-        description: "This is a sample description for the fourth card.",
-        link: "https://example.com",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Section 3",
-    cards: [
-      {
-        id: 3,
-        image: "https://via.placeholder.com/300",
-        title: "Sample Title 3",
-        description: "This is a sample description for the third card.",
-        link: "https://example.com",
-      },
-      {
-        id: 4,
-        image: "https://via.placeholder.com/300",
-        title: "Sample Title 4",
-        description: "This is a sample description for the fourth card.",
-        link: "https://example.com",
-      },
-    ],
-  },
+const sections = [
+  "Home",
+  "Talks, Workshop & Conferences",
+  "Management Shots",
+  "Awards and Recognitions",
+  "Interviews"
 ];
 
-const ViewPage = () => {
-  const [sections, setSections] = useState(initialSections);
+const generateData = () =>
+  new Array(5).fill(null).map((_, index) => ({
+    id: index,
+    title: `Item ${index + 1}`,
+    image: "https://via.placeholder.com/150",
+    description: "Description here",
+    link: "https://example.com",
+    section: sections[0],
+  }));
+
+const ScrollableSection = ({ title }) => {
+  const [data, setData] = useState(generateData());
+  const [editItem, setEditItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteData, setDeleteData] = useState(null);
+  const [newData, setNewData] = useState({ title: "", image: "", description: "", link: "", section: "" });
 
-  const handleDeleteConfirm = () => {
-    setSections(sections.map(section => ({
-      ...section,
-      cards: section.cards.filter(card => card.id !== deleteData.cardId),
-    })));
-    setShowDeleteModal(false);
+  const handleDelete = (id) => {
+    setData(data.filter(item => item.id !== id));
   };
 
-  const handleDelete = (sectionId, cardId) => {
-    setDeleteData({ sectionId, cardId });
-    setShowDeleteModal(true);
-  };
-
-  const handleEdit = (card) => {
-    setEditData(card);
+  const handleEdit = (item) => {
+    setEditItem(item);
+    setNewData(item);
     setShowModal(true);
   };
 
   const handleSave = () => {
-    setSections(sections.map(section => ({
-      ...section,
-      cards: section.cards.map(card => (card.id === editData.id ? editData : card)),
-    })));
+    setData(data.map(item => item.id === editItem.id ? { ...item, ...newData } : item));
     setShowModal(false);
   };
 
-  return (
-    <Container fluid className="bg-light py-4">
-      {sections.map((section) => (
-        <div key={section.id} className="mb-4">
-          <h3 className="text-center mb-3">{section.title}</h3>
-          <Carousel indicators={false} className="mx-auto" style={{ maxWidth: "90%" }}>
-            {section.cards.map((card) => (
-              <Carousel.Item key={card.id}>
-                <Row className="justify-content-center">
-                  <Col xs={12} md={8} lg={6}>
-                    <Card className="shadow-sm">
-                      <Row className="g-0">
-                        <Col md={4} className="d-flex align-items-center">
-                          <Card.Img src={card.image} className="img-fluid rounded-start" />
-                        </Col>
-                        <Col md={8}>
-                          <Card.Body>
-                            <Card.Title>{card.title}</Card.Title>
-                            <Card.Text>{card.description}</Card.Text>
-                            <Card.Link href={card.link} target="_blank">Visit</Card.Link>
-                            <div className="mt-3 d-flex justify-content-end">
-                              <Button variant="outline-primary me-2" onClick={() => handleEdit(card)}>
-                                <FaEdit />
-                              </Button>
-                              <Button variant="outline-danger" onClick={() => handleDelete(section.id, card.id)}>
-                                <FaTrash />
-                              </Button>
-                            </div>
-                          </Card.Body>
-                        </Col>
-                      </Row>
-                    </Card>
-                  </Col>
-                </Row>
-              </Carousel.Item>
-            ))}
-          </Carousel>
-        </div>
-      ))}
+  const handleImageSelect = (image) => {
+    setNewData({ ...newData, image });
+  };
 
-      {showDeleteModal && (
-        <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Confirm Delete</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>Are you sure you want to delete this card?</Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDeleteConfirm}>Delete</Button>
-          </Modal.Footer>
-        </Modal>
-      )}
+  const scrollContainer = React.createRef();
+  const scrollLeft = () => {
+    scrollContainer.current.scrollBy({ left: -220, behavior: "smooth" });
+  };
+  const scrollRight = () => {
+    scrollContainer.current.scrollBy({ left: 220, behavior: "smooth" });
+  };
+
+  return (
+    <Container fluid className="py-4 border-bottom bg-light">
+      <h4 className="mb-3 text-center">{title}</h4>
+      <div className="d-flex align-items-center">
+        <Button variant="light" onClick={scrollLeft}><FaChevronLeft /></Button>
+        <div className="d-flex gap-3 px-3 overflow-hidden" ref={scrollContainer} style={{ whiteSpace: "nowrap" }}>
+          {data.map((item) => (
+            <Card key={item.id} style={{ minWidth: "220px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
+              <Card.Img variant="top" src={item.image} style={{ height: "150px", objectFit: "cover" }} />
+              <Card.Body className="text-center">
+                <Card.Title style={{ fontSize: "calc(16px - 0.2vw)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</Card.Title>
+                <div className="d-flex justify-content-center gap-2 mt-2">
+                  <Button variant="outline-primary" size="sm" onClick={() => handleEdit(item)}>
+                    <FaEdit />
+                  </Button>
+                  <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>
+                    <FaTrash />
+                  </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          ))}
+        </div>
+        <Button variant="light" onClick={scrollRight}><FaChevronRight /></Button>
+      </div>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Item</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group>
+              <Form.Label>Select Image</Form.Label>
+              <div className="d-flex justify-content-between">
+                {["https://via.placeholder.com/150", "https://via.placeholder.com/150/0000FF"]
+                  .map((imgSrc, idx) => (
+                    <Card key={idx} style={{ width: "48%", cursor: "pointer" }} onClick={() => handleImageSelect(imgSrc)}>
+                      <Card.Img variant="top" src={imgSrc} style={{ height: "100px", objectFit: "cover" }} />
+                      <Card.Body className="text-center p-2">
+                        <Button variant="outline-primary" size="sm"><FaEdit /></Button>
+                      </Card.Body>
+                    </Card>
+                ))}
+              </div>
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Title</Form.Label>
+              <Form.Control type="text" value={newData.title} onChange={(e) => setNewData({ ...newData, title: e.target.value })} />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Description</Form.Label>
+              <Form.Control as="textarea" rows={3} value={newData.description} onChange={(e) => setNewData({ ...newData, description: e.target.value })} />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Link</Form.Label>
+              <Form.Control type="text" value={newData.link} onChange={(e) => setNewData({ ...newData, link: e.target.value })} />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Section</Form.Label>
+              <Form.Control as="select" value={newData.section} onChange={(e) => setNewData({ ...newData, section: e.target.value })}>
+                {sections.map((sec, idx) => <option key={idx}>{sec}</option>)}
+              </Form.Control>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleSave}>Save</Button>
+        </Modal.Footer>
+      </Modal>
+    </Container>
+  );
+};
+
+const ViewPage = () => {
+  return (
+    <Container className="mt-4">
+      {sections.map((section, index) => (
+        <ScrollableSection key={index} title={section} />
+      ))}
     </Container>
   );
 };
